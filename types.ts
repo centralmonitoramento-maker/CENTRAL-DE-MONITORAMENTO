@@ -99,6 +99,11 @@ export interface ZendeskTicket {
   created_at: string;
   priority: string;
   description: string;
+  branch?: string;
+  location?: string;
+  category?: string;
+  requester_name?: string;
+  attachments?: string[];
 }
 
 export interface TicketNotification {
@@ -108,6 +113,13 @@ export interface TicketNotification {
   type: 'status_change' | 'new_comment' | 'urgent_alert';
   timestamp: string;
   read: boolean;
+}
+
+export interface FileProgress {
+  name: string;
+  progress: number;
+  status: 'uploading' | 'success' | 'error';
+  token?: string;
 }
 
 export interface ServerResponse<T> {

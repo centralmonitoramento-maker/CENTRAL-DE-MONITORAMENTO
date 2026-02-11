@@ -1,18 +1,11 @@
 
 import React, { useState } from 'react';
-import { ClaimWizardData, ClaimantType, OccurrenceCategory, GravityLevel, InvolvedParty } from '../types';
+import { ClaimWizardData, ClaimantType, OccurrenceCategory, GravityLevel, InvolvedParty, FileProgress } from '../types';
 import { zendeskService } from '../services/zendeskService';
 import { formatWhatsAppSummary } from '../server/middleware';
 
 interface WizardProps {
   onSuccess: (id: number, summary: string) => void;
-}
-
-interface FileProgress {
-  name: string;
-  progress: number;
-  status: 'uploading' | 'success' | 'error';
-  token?: string;
 }
 
 const ClaimWizard: React.FC<WizardProps> = ({ onSuccess }) => {
@@ -117,7 +110,7 @@ const ClaimWizard: React.FC<WizardProps> = ({ onSuccess }) => {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
+      const selectedFiles = Array.from(e.target.files) as File[];
       setData(prev => ({ ...prev, files: [...prev.files, ...selectedFiles] }));
 
       selectedFiles.forEach(async (file) => {
@@ -155,7 +148,7 @@ const ClaimWizard: React.FC<WizardProps> = ({ onSuccess }) => {
   };
 
   const handleSubmit = async () => {
-    const isUploading = Object.values(fileStatuses).some(f => f.status === 'uploading');
+    const isUploading = (Object.values(fileStatuses) as FileProgress[]).some(f => f.status === 'uploading');
     if (isUploading) {
       alert("Aguarde o término do envio dos anexos.");
       return;
@@ -357,7 +350,7 @@ const ClaimWizard: React.FC<WizardProps> = ({ onSuccess }) => {
               <div className="p-4 bg-red-50 rounded-3xl border-2 border-red-100 space-y-3 animate-in fade-in zoom-in duration-300">
                 <p className="text-[10px] font-black text-red-500 uppercase text-center">Dados do Veículo Envolvido</p>
                 <input
-                  className={`${inputClasses} border-red-200 focus:ring-red-600`}
+                  className={`${inputClasses} bg-[#f8f9fa] rounded-3xl border border-slate-200 focus:ring-2 focus:ring-red-600 focus:border-red-600 shadow-sm`}
                   placeholder="Placa do Veículo"
                   value={data.vehicle_plate}
                   onChange={e => setData({...data, vehicle_plate: e.target.value.toUpperCase()})}
@@ -480,7 +473,7 @@ const ClaimWizard: React.FC<WizardProps> = ({ onSuccess }) => {
               {Object.entries(fileStatuses).length === 0 && (
                 <p className="text-center text-[10px] text-slate-400 font-bold uppercase italic mt-4 opacity-50">Nenhum arquivo selecionado</p>
               )}
-              {Object.entries(fileStatuses).map(([id, status]) => (
+              {(Object.entries(fileStatuses) as [string, FileProgress][]).map(([id, status]) => (
                 <div key={id} className="bg-white p-4 rounded-[25px] border-2 border-slate-100 flex flex-col gap-3 shadow-md animate-in slide-in-from-left duration-500">
                   <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-tight">
                     <div className="flex items-center gap-2 max-w-[70%]">
