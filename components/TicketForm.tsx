@@ -22,12 +22,12 @@ const TicketForm: React.FC<{ onSuccess: (id: number) => void }> = ({ onSuccess }
   });
 
   const analyzeClaim = async () => {
-    if (formData.description.length < 15) return;
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || formData.description.length < 15) return;
     
     setAiAnalyzing(true);
     try {
-      // Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const prompt = `Você é um triador de sinistros de seguros. Analise este relato e extraia a categoria e prioridade.
       Relato: "${formData.description}"`;
       
@@ -36,7 +36,6 @@ const TicketForm: React.FC<{ onSuccess: (id: number) => void }> = ({ onSuccess }
         contents: prompt,
         config: { 
           responseMimeType: 'application/json',
-          // The recommended way to get JSON is by defining a responseSchema.
           responseSchema: {
             type: Type.OBJECT,
             properties: {
@@ -54,12 +53,14 @@ const TicketForm: React.FC<{ onSuccess: (id: number) => void }> = ({ onSuccess }
         }
       });
 
-      // The text property returns the string output. Parsing it as JSON since responseMimeType is set.
-      const result = JSON.parse(response.text || '{}');
-      if (result.categoria) setFormData(prev => ({ ...prev, category: result.categoria as TicketCategory }));
-      if (result.prioridade) setFormData(prev => ({ ...prev, priority: result.prioridade as TicketPriority }));
+      const text = response.text;
+      if (text) {
+        const result = JSON.parse(text);
+        if (result.categoria) setFormData(prev => ({ ...prev, category: result.categoria as TicketCategory }));
+        if (result.prioridade) setFormData(prev => ({ ...prev, priority: result.prioridade as TicketPriority }));
+      }
     } catch (e) {
-      console.error("Falha na análise de IA", e);
+      console.warn("IA não configurada ou erro na análise", e);
     } finally {
       setAiAnalyzing(false);
     }

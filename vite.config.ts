@@ -9,32 +9,35 @@ if (!globalThis.crypto) {
 }
 
 export default defineConfig(({ mode }) => {
-  // Fix: Property 'cwd' does not exist on type 'Process'.
-  // Using type assertion to any to access the Node.js process.cwd() method.
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  const env = loadEnv(mode, process.cwd(), '');
   
   return {
-    base: './', // Essencial para o GitHub Pages (caminhos relativos)
+    base: './',
     define: {
-      // Injeta a API_KEY para que o código 'process.env.API_KEY' funcione no navegador
+      // Injeta variáveis individualmente e o objeto process completo
       'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
-      // Garante que o objeto process não falhe se acessado
-      'process.env': {
-        NODE_ENV: JSON.stringify(mode),
-        API_KEY: JSON.stringify(env.API_KEY || '')
-      }
+      'process.env.NODE_ENV': JSON.stringify(mode),
+      'process.env': JSON.stringify({
+        ...env,
+        NODE_ENV: mode
+      })
     },
     build: {
       outDir: 'dist',
       emptyOutDir: true,
+      sourcemap: false,
       rollupOptions: {
         output: {
-          manualChunks: undefined,
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-ai': ['@google/genai']
+          },
         },
       },
     },
     server: {
       host: true,
+      port: 3000,
       strictPort: true,
     }
   };
