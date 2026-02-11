@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { TicketFormData, TicketCategory, TicketPriority } from '../types';
 import { zendeskService } from '../services/zendeskService';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 const TicketForm: React.FC<{ onSuccess: (id: number) => void }> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -26,18 +26,35 @@ const TicketForm: React.FC<{ onSuccess: (id: number) => void }> = ({ onSuccess }
     
     setAiAnalyzing(true);
     try {
+      // Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Você é um triador de sinistros de seguros. Analise este relato e retorne APENAS um JSON com:
-      "categoria" (automovel, residencial, vida, saude) e "prioridade" (low, normal, high, urgent). 
-      Se houver feridos ou risco de vida, a prioridade DEVE ser 'urgent'.
+      const prompt = `Você é um triador de sinistros de seguros. Analise este relato e extraia a categoria e prioridade.
       Relato: "${formData.description}"`;
       
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
-        config: { responseMimeType: 'application/json' }
+        config: { 
+          responseMimeType: 'application/json',
+          // The recommended way to get JSON is by defining a responseSchema.
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              categoria: {
+                type: Type.STRING,
+                description: 'A categoria do sinistro: automovel, residencial, vida, saude',
+              },
+              prioridade: {
+                type: Type.STRING,
+                description: 'A prioridade: low, normal, high, urgent.',
+              },
+            },
+            required: ['categoria', 'prioridade'],
+          }
+        }
       });
 
+      // The text property returns the string output. Parsing it as JSON since responseMimeType is set.
       const result = JSON.parse(response.text || '{}');
       if (result.categoria) setFormData(prev => ({ ...prev, category: result.categoria as TicketCategory }));
       if (result.prioridade) setFormData(prev => ({ ...prev, priority: result.prioridade as TicketPriority }));
