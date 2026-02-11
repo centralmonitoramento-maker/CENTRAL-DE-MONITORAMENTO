@@ -17,6 +17,7 @@
       font-family: 'Inter', sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      background-color: #f8f9fa;
     }
     input, textarea {
       user-select: text;
@@ -29,20 +30,34 @@
       animation-duration: 0.3s;
       animation-fill-mode: both;
     }
+    /* Estilização para o estado de carregamento inicial */
+    #root:empty::before {
+      content: 'CARREGANDO SISTEMA...';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 900;
+      color: #E63946;
+      letter-spacing: 0.2em;
+    }
   </style>
+
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
+    "vite": "https://esm.sh/vite@^7.3.1",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
     "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "vite": "https://esm.sh/vite@^7.3.1"
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
   }
 }
 </script>
+  <script type="module" crossorigin src="./assets/index-UXkvcNoC.js"></script>
 </head>
 <body class="overscroll-none">
   <div id="root"></div>
+  <!-- O ponto de entrada do script deve ser carregado como um módulo -->
 </body>
 </html>
